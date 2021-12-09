@@ -1,7 +1,16 @@
+import Card from './UI/Card';
+import './Auth.css';
+
 const Auth = () => {
+	const loginHandler = () => {};
+
 	return (
-		<div>
-			
+		<div className="auth">
+			<Card>
+				<h2>You are not authenticated!</h2>
+				<p>Please login to continue.</p> 
+				<button onClick={loginHandler}>Log In</button> 
+			</Card>
 		</div> 
 	)
 };
