@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import IngredientForm from "./IngredientForm";
 import Search from "./Search";
 import IngredientList from "./IngredientList";
 
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const filteredIngredientsHandler = useCallback((filteredIngredients) => {
+    setIngredients(filteredIngredients);
+  }, []);
 
   const addIngredientHandler = (ingredient) => {
+    setIsLoading(true);
     fetch(
       "https://react-ingredients-hooks-28-default-rtdb.firebaseio.com/ingredients.json",
       {
@@ -17,7 +23,10 @@ const Ingredients = () => {
         },
       }
     )
-      .then((response) => response.json())
+      .then((response) => {
+        setIsLoading(false);
+        return response.json();
+      })
       .then((responseData) => {
         setIngredients((prevState) => [
           ...prevState,
@@ -27,16 +36,28 @@ const Ingredients = () => {
   };
 
   const removeIngredientHandler = (id) => {
-    setIngredients((prevState) =>
-      prevState.filter((ingredient) => ingredient.id !== id)
-    );
+    setIsLoading(true);
+    fetch(
+      `https://react-ingredients-hooks-28-default-rtdb.firebaseio.com/ingredients/${id}.json`,
+      {
+        method: "DELETE",
+      }
+    ).then((response) => {
+      setIsLoading(false);
+      setIngredients((prevState) =>
+        prevState.filter((ingredient) => ingredient.id !== id)
+      );
+    });
   };
 
   return (
     <div>
-      <IngredientForm onAddIngredient={addIngredientHandler} />
+      <IngredientForm
+        isLoading={isLoading}
+        onAddIngredient={addIngredientHandler}
+      />
       <section>
-        <Search />
+        <Search onLoadIngredients={filteredIngredientsHandler} />
         <IngredientList
           ingredients={ingredients}
           onRemoveItem={removeIngredientHandler}
