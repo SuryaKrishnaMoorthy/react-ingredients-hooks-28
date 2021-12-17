@@ -1,16 +1,32 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useReducer } from "react";
 import IngredientForm from "./IngredientForm";
 import Search from "./Search";
 import IngredientList from "./IngredientList";
 import ErrorModal from "../UI/ErrorModal";
 
+const ingredientReducer = (initialState, action) => {
+  switch (action.type) {
+    case "SET":
+      return action.ingredients;
+    case "ADD":
+      return [...initialState, action.ingredient];
+    case "DELETE":
+      return initialState.filter((ingredient) => ingredient.id !== action.id);
+    default:
+      throw new Error("Should not get there!");
+  }
+};
+
 const Ingredients = () => {
-  const [ingredients, setIngredients] = useState([]);
+  const [ingredients, disptach] = useReducer(ingredientReducer, []);
+
+  // const [ingredients, setIngredients] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
   const filteredIngredientsHandler = useCallback((filteredIngredients) => {
-    setIngredients(filteredIngredients);
+    disptach({ type: "SET", ingredients: filteredIngredients });
+    // setIngredients(filteredIngredients);
   }, []);
 
   const addIngredientHandler = (ingredient) => {
@@ -30,10 +46,11 @@ const Ingredients = () => {
         return response.json();
       })
       .then((responseData) => {
-        setIngredients((prevState) => [
-          ...prevState,
-          { id: responseData.name, ...ingredient },
-        ]);
+        disptach({ type: "ADD", ingredient: ingredient });
+        // setIngredients((prevState) => [
+        //   ...prevState,
+        //   { id: responseData.name, ...ingredient },
+        // ]);
       });
   };
 
@@ -47,9 +64,10 @@ const Ingredients = () => {
     )
       .then((response) => {
         setIsLoading(false);
-        setIngredients((prevState) =>
-          prevState.filter((ingredient) => ingredient.id !== id)
-        );
+        disptach({ type: "DELETE", id: id });
+        // setIngredients((prevState) =>
+        //   prevState.filter((ingredient) => ingredient.id !== id)
+        // );
       })
       .catch((error) => {
         setIsLoading(false);
